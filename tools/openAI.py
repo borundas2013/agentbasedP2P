@@ -1,8 +1,10 @@
-from tools import remove_bond_by_smarts, add_group_by_smarts, get_all_properties
+from tools import remove_bond_by_smarts_tool, add_group_by_smarts_tool, get_all_properties
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
+
+
 
 
 class RemoveBondBySmartsTool(BaseModel):
@@ -26,7 +28,7 @@ class GetAllPropertiesTool(BaseModel):
     property_type: str = Field("physical", description="Type of property to predict (default = 'physical') from the following options: all, physical, toxicity, solubility")
 
 @tool
-def remove_bond_by_smarts_tool(input: RemoveBondBySmartsTool) -> str:
+def remove_bond_by_smarts(input: RemoveBondBySmartsTool) -> str:
     """
     Remove a specific group or bond from one of two molecules.
 
@@ -44,10 +46,10 @@ def remove_bond_by_smarts_tool(input: RemoveBondBySmartsTool) -> str:
     smiles2 = input.smiles2
     bond_smarts = input.bond_smarts
     target_monomer = input.target_monomer
-    return remove_bond_by_smarts(smiles1, smiles2, bond_smarts, target_monomer)
+    return remove_bond_by_smarts_tool(smiles1, smiles2, bond_smarts, target_monomer)
 
 @tool
-def add_group_by_smarts_tool(input: AddGroupBySmartsTool) -> str:
+def add_group_by_smarts(input: AddGroupBySmartsTool) -> str:
     """
     Add a functional group or substructure defined by SMARTS to one of two molecules.
 
@@ -67,7 +69,7 @@ def add_group_by_smarts_tool(input: AddGroupBySmartsTool) -> str:
     group_smarts = input.group_smarts
     target_monomer = input.target_monomer
     attachment_atom_idx = input.attachment_atom_idx 
-    return add_group_by_smarts(smiles1, smiles2, group_smarts, target_monomer, attachment_atom_idx)
+    return add_group_by_smarts_tool(smiles1, smiles2, group_smarts, target_monomer, attachment_atom_idx)
 
 @tool
 def get_all_properties_tool(input: GetAllPropertiesTool) -> str:
@@ -98,33 +100,39 @@ def get_all_properties_tool(input: GetAllPropertiesTool) -> str:
 
 
 def main():
-    llm = ChatOpenAI(model="ft:gpt-4o-mini-2024-07-18:personal::BKodpSOI", api_key=api_key, 
+    llm = ChatOpenAI(model="", api_key="", 
                      temperature=0, max_tokens=1000)
     agent = create_react_agent(llm,
-                               tools=[remove_bond_by_smarts_tool, add_group_by_smarts_tool, get_all_properties_tool])
-
-    # query = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. show the solubility properties of the given monomers."
-    # print("User query:", query)
-    # response = agent.invoke({"messages": [("human", query)]})
-    # #print("Assistant response:", response["messages"][-1].content)
-    # tool_names = [call["name"] for msg in response["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response["messages"][1].content)
-
-    print("----------------Physical Properties----------------")
-    query = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. show the solubility properties of the given monomers."
+                               tools=[remove_bond_by_smarts, add_group_by_smarts, get_all_properties_tool])
     
+    query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCCOOCC. remove CN group from monomer 1."
+    print("\nExample 1: Remove single atom")
+    print("User query:", query1)
+    response1 = agent.invoke({"messages": [("human", query1)]})
+    print("Assistant response:", response1["messages"][-1].content)
+
+    query = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. show the solubility properties of the given monomers."
+    print("User query:", query)
     response = agent.invoke({"messages": [("human", query)]})
-    #print(response['messages'][2].content)
     #print("Assistant response:", response["messages"][-1].content)
     tool_names = [call["name"] for msg in response["messages"] 
               if hasattr(msg, "tool_calls") and msg.tool_calls 
               for call in msg.tool_calls]
-    print("User query:", query)
     print("Tools called by LLM:", tool_names)
-    print("Assistant/Tool response:", response["messages"][2].content)
+    print("Assistant response:", response["messages"][1].content)
+
+    # print("----------------Physical Properties----------------")
+    # query = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. show the all properties of the given monomers."
+    
+    # response = agent.invoke({"messages": [("human", query)]})
+    # #print(response['messages'][2].content)
+    # #print("Assistant response:", response["messages"][-1].content)
+    # tool_names = [call["name"] for msg in response["messages"] 
+    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
+    #           for call in msg.tool_calls]
+    # print("User query:", query)
+    # print("Tools called by LLM:", tool_names)
+    # print("Assistant/Tool response:", response["messages"][2].content)
 
     # query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCCOOCC. remove CN group from monomer 1."
     # print("\nExample 1: Remove single atom")

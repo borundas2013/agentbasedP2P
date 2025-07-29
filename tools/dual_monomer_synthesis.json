@@ -1,0 +1,174 @@
+{
+  "monomer1": {
+    "smiles": "CC(C)(C4CCC(OCC(O)COC3CCC(C(C)(C)C2CCC(OCC1CO1)CC2)CC3)CC4)C6CCC(OCC5CO5)CC6",
+    "synthesis": {
+      "score": 0.9634470710684997,
+      "num_steps": 6,
+      "steps": [
+        {
+          "step_number": 1,
+          "reactants": [
+            "O=C(OO)c1cccc(Cl)c1 (in stock)"
+          ],
+          "products": [
+            "C=CCOC1CCC(C(C)(C)C2CCC(OCC(O)COC3CCC(C(C)(C)C4CCC(OCC5CO5)CC4)CC3)CC2)CC1"
+          ],
+          "reaction_smiles": "[O:1]1[C:5]([CH2:4][O:3][CH3:2])[C:6]1>>O=C(O[O:1])c1cccc(Cl)c1.[CH3:2][O:3][CH2:4][C:5]=[C:6]",
+          "template": "[C:2]-[#8:3]-[C:4]-[CH;D3;+0:5]1-[CH2;D2;+0:6]-[O;H0;D2;+0:1]-1>>Cl-c1:c:c:c:c(-C(=O)-O-[OH;D1;+0:1]):c:1.[C:2]-[#8:3]-[C:4]-[CH;D2;+0:5]=[CH2;D1;+0:6]"
+        },
+        {
+          "step_number": 2,
+          "reactants": [],
+          "products": [
+            "C=CCOC1CCC(C(C)(C)C2CCC(O)CC2)CC1",
+            "CC(C)(C1CCC(OCC(O)CCl)CC1)C1CCC(OCC2CO2)CC1"
+          ],
+          "reaction_smiles": "[C:1]([CH2:2][OH:3])[O:5][CH3:4]>>Cl[C:1][CH2:2][OH:3].[CH3:4][O:5]",
+          "template": "[#8:3]-[C:2]-[CH2;D2;+0:1]-[O;H0;D2;+0:5]-[C:4]>>Cl-[CH2;D2;+0:1]-[C:2]-[#8:3].[C:4]-[OH;D1;+0:5]"
+        },
+        {
+          "step_number": 3,
+          "reactants": [
+            "C=CCBr (in stock)",
+            "CC(C)(C1CCC(O)CC1)C1CCC(O)CC1 (in stock)"
+          ],
+          "products": [],
+          "reaction_smiles": "[C:1]([CH:2]=[CH2:3])[O:5][CH3:4]>>Br[C:1][CH:2]=[CH2:3].[CH3:4][O:5]",
+          "template": "[C:3]=[C:2]-[CH2;D2;+0:1]-[O;H0;D2;+0:5]-[C:4]>>Br-[CH2;D2;+0:1]-[C:2]=[C:3].[C:4]-[OH;D1;+0:5]"
+        },
+        {
+          "step_number": 3,
+          "reactants": [
+            "OC(CCl)CCl (in stock)"
+          ],
+          "products": [
+            "CC(C)(C1CCC(O)CC1)C1CCC(OCC2CO2)CC1"
+          ],
+          "reaction_smiles": "[C:1]([CH2:2][OH:3])[O:5][CH3:4]>>Cl[C:1][CH2:2][OH:3].[CH3:4][O:5]",
+          "template": "[#8:3]-[C:2]-[CH2;D2;+0:1]-[O;H0;D2;+0:5]-[C:4]>>Cl-[CH2;D2;+0:1]-[C:2]-[#8:3].[C:4]-[OH;D1;+0:5]"
+        },
+        {
+          "step_number": 4,
+          "reactants": [
+            "CC(C)(C1CCC(O)CC1)C1CCC(O)CC1 (in stock)"
+          ],
+          "products": [
+            "ClCC1CO1"
+          ],
+          "reaction_smiles": "[C:1]([CH2:2][OH:3])[O:5][CH3:4]>>Cl[C:1][CH2:2][OH:3].[CH3:4][O:5]",
+          "template": "[#8:3]-[C:2]-[CH2;D2;+0:1]-[O;H0;D2;+0:5]-[C:4]>>Cl-[CH2;D2;+0:1]-[C:2]-[#8:3].[C:4]-[OH;D1;+0:5]"
+        },
+        {
+          "step_number": 5,
+          "reactants": [
+            "C=CCCl (in stock)",
+            "O=C(OO)c1cccc(Cl)c1 (in stock)"
+          ],
+          "products": [],
+          "reaction_smiles": "[O:1]1[C:3]([CH3:2])[C:4]1>>O=C(O[O:1])c1cccc(Cl)c1.[CH3:2][C:3]=[C:4]",
+          "template": "[C:2]-[CH;D3;+0:3]1-[CH2;D2;+0:4]-[O;H0;D2;+0:1]-1>>Cl-c1:c:c:c:c(-C(=O)-O-[OH;D1;+0:1]):c:1.[C:2]-[CH;D2;+0:3]=[CH2;D1;+0:4]"
+        }
+      ]
+    },
+    "explanation": ""
+  },
+  "monomer2": {
+    "smiles": "CC(C)(c3ccc2OCN(c1ccccc1)Cc2c3)c6ccc5OCN(c4ccccc4)Cc5c6",
+    "synthesis": {
+      "score": 0.82024586038682,
+      "num_steps": 9,
+      "steps": [
+        {
+          "step_number": 1,
+          "reactants": [],
+          "products": [
+            "c1ccc(N2COc3ccccc3C2)cc1",
+            "C=C(C)c1ccc2c(c1)CN(c1ccccc1)CO2"
+          ],
+          "reaction_smiles": "[CH3:1][C:2]([C:3])([cH3:4])[c:6]([cH2:5])[cH2:7]>>[CH3:1][C:2](=[C:3])[cH3:4].[cH2:5][c:6][cH2:7]",
+          "template": "[C;D1;H3:1]-[C;H0;D4;+0:2](-[CH3;D1;+0:3])(-[c:4])-[c;H0;D3;+0:6](:[c:5]):[c:7]>>[C;D1;H3:1]-[C;H0;D3;+0:2](=[CH2;D1;+0:3])-[c:4].[c:5]:[cH;D2;+0:6]:[c:7]"
+        },
+        {
+          "step_number": 2,
+          "reactants": [
+            "c1ccc2c(c1)CNCO2 (in stock)",
+            "Brc1ccccc1 (in stock)"
+          ],
+          "products": [],
+          "reaction_smiles": "[c:1]([cH2:2])([cH2:3])[N:5]([CH3:4])[CH3:6]>>Br[c:1]([cH2:2])[cH2:3].[CH3:4][N:5][CH3:6]",
+          "template": "[C:4]-[N;H0;D3;+0:5](-[C:6])-[c;H0;D3;+0:1](:[c:2]):[c:3]>>Br-[c;H0;D3;+0:1](:[c:2]):[c:3].[C:4]-[NH;D2;+0:5]-[C:6]"
+        },
+        {
+          "step_number": 2,
+          "reactants": [],
+          "products": [
+            "CC(=O)c1ccc2c(c1)CN(c1ccccc1)CO2",
+            "C[P+](c1ccccc1)(c1ccccc1)c1ccccc1"
+          ],
+          "reaction_smiles": "[C:1]([CH3:2])([cH3:3])=[C:4]>>O=[C:1]([CH3:2])[cH3:3].c1ccc([P+](c2ccccc2)(c2ccccc2)[C:4])cc1",
+          "template": "[C:2]-[C;H0;D3;+0:1](=[CH2;D1;+0:4])-[c:3]>>O=[C;H0;D3;+0:1](-[C:2])-[c:3].[CH3;D1;+0:4]-[P+](-c1:c:c:c:c:c:1)(-c1:c:c:c:c:c:1)-c1:c:c:c:c:c:1"
+        },
+        {
+          "step_number": 3,
+          "reactants": [
+            "Brc1ccccc1 (in stock)"
+          ],
+          "products": [
+            "CC(=O)c1ccc2c(c1)CNCO2"
+          ],
+          "reaction_smiles": "[c:1]([cH2:2])([cH2:3])[N:5]([CH3:4])[CH3:6]>>Br[c:1]([cH2:2])[cH2:3].[CH3:4][N:5][CH3:6]",
+          "template": "[C:4]-[N;H0;D3;+0:5](-[C:6])-[c;H0;D3;+0:1](:[c:2]):[c:3]>>Br-[c;H0;D3;+0:1](:[c:2]):[c:3].[C:4]-[NH;D2;+0:5]-[C:6]"
+        },
+        {
+          "step_number": 4,
+          "reactants": [
+            "CC(=O)Cl (in stock)",
+            "c1ccc2c(c1)CNCO2 (in stock)"
+          ],
+          "products": [],
+          "reaction_smiles": "[C:1]([CH3:2])(=[O:3])[c:5]([cH2:4])[cH2:6]>>Cl[C:1]([CH3:2])=[O:3].[cH2:4][c:5][cH2:6]",
+          "template": "[C;D1;H3:2]-[C;H0;D3;+0:1](=[O;D1;H0:3])-[c;H0;D3;+0:5](:[c:4]):[c:6]>>Cl-[C;H0;D3;+0:1](-[C;D1;H3:2])=[O;D1;H0:3].[c:4]:[cH;D2;+0:5]:[c:6]"
+        },
+        {
+          "step_number": 3,
+          "reactants": [],
+          "products": [
+            "C[P+](c1ccccc1)(c1ccccc1)c1ccccc1O"
+          ],
+          "reaction_smiles": "[c:1]([cH2:2])[cH2:3]>>O[c:1]([cH2:2])[cH2:3]",
+          "template": "[c:2]:[cH;D2;+0:1]:[c:3]>>O-[c;H0;D3;+0:1](:[c:2]):[c:3]"
+        },
+        {
+          "step_number": 4,
+          "reactants": [],
+          "products": [
+            "COc1ccccc1[P+](C)(c1ccccc1)c1ccccc1"
+          ],
+          "reaction_smiles": "[O:1][cH3:2]>>C[O:1][cH3:2]",
+          "template": "[OH;D1;+0:1]-[c:2]>>C-[O;H0;D2;+0:1]-[c:2]"
+        },
+        {
+          "step_number": 5,
+          "reactants": [],
+          "products": [
+            "COc1ccccc1[P+](C)(c1ccccc1)c1cccc(Cl)c1"
+          ],
+          "reaction_smiles": "[c:1]([cH2:2])[cH2:3]>>Cl[c:1]([cH2:2])[cH2:3]",
+          "template": "[c:2]:[cH;D2;+0:1]:[c:3]>>Cl-[c;H0;D3;+0:1](:[c:2]):[c:3]"
+        },
+        {
+          "step_number": 6,
+          "reactants": [
+            "COS(=O)(=O)OC (in stock)"
+          ],
+          "products": [
+            "C[P+](c1ccccc1)(c1cccc(Cl)c1)c1ccccc1O"
+          ],
+          "reaction_smiles": "[C:1][O:2][cH3:3]>>COS(=O)(=O)O[C:1].[O:2][cH3:3]",
+          "template": "[CH3;D1;+0:1]-[O;H0;D2;+0:2]-[c:3]>>C-O-S(=O)(=O)-O-[CH3;D1;+0:1].[OH;D1;+0:2]-[c:3]"
+        }
+      ]
+    },
+    "explanation": ""
+  }
+}

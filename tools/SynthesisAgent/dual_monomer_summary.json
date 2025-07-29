@@ -1,0 +1,14 @@
+{
+  "overall_status": "partially_synthesizable",
+  "quality_filter_applied": true,
+  "monomer1": {
+    "smiles": "CC(C)(C4CCC(OCC(O)COC3CCC(C(C)(C)C2CCC(OCC1CO1)CC2)CC3)CC4)C6CCC(OCC5CO5)CC6",
+    "status": "partial",
+    "total_routes_found": 5
+  },
+  "monomer2": {
+    "smiles": "CC(C)(c3ccc2OCN(c1ccccc1)Cc2c3)c6ccc5OCN(c4ccccc4)Cc5c6",
+    "status": "partial",
+    "total_routes_found": 8
+  }
+}
