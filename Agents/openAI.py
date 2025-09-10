@@ -1,10 +1,27 @@
-from tools import remove_bond_by_groups, add_group, get_all_properties, generate_TSMP_samples
+from tools import remove_bond_by_groups, add_group, get_all_properties, generate_TSMP_samples, optimize_TSMP
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
 
+from dotenv import load_dotenv
+import os
 
+# Load environment variables with explicit path
+env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+print(f"Looking for .env file at: {env_path}")
+print(f".env file exists: {os.path.exists(env_path)}")
+
+load_dotenv(env_path)
+
+api_key = os.getenv("OPENAI_API_KEY")
+MODEL_ID = os.getenv("BASE_MODEL_ID")
+
+# Add fallback values for debugging
+
+
+print("MODEL_ID:", MODEL_ID)
+print("api_key:", api_key[:20] + "..." if api_key else "None")
 
 
 class RemoveBondBySmartsTool(BaseModel):
@@ -37,6 +54,15 @@ class GenerateTSMPSamplesTool(BaseModel):
 class GeneratePolymerWithGivenSMILES(BaseModel):
     SMILES: str = Field(..., description="SMILES of the polymer")
 
+class OptimizeTSMPTool(BaseModel):
+    target_Tg: float = Field(..., description="Target glass transition temperature (Tg) in °C")
+    target_Er: float = Field(..., description="Target recovery stress (Er) in MPa")
+    monomer1: str = Field(..., description="First monomer SMILES")
+    monomer2: str = Field(..., description="Second monomer SMILES")
+    tolerance_Tg: float = Field(..., description="Tolerance for Tg prediction (±°C)")
+    tolerance_Er: float = Field(..., description="Tolerance for Er prediction (±MPa)")
+    # max_iterations: int = Field(..., description="Maximum number of optimization iterations")
+    # property_type: str = Field(..., description="Type of property to predict")
 
 
 @tool
@@ -165,195 +191,101 @@ def generate_polymer_with_given_SMILES_tool(input: GeneratePolymerWithGivenSMILE
     print(SMILES)
     #return generate_polymer_with_given_SMILES(SMILES)
 
+@tool
+def optimize_TSMP_tool(input: OptimizeTSMPTool) -> str:
+    """
+    Iteratively optimize TSMP samples until predicted properties fall within target tolerance.
+
+    This tool generates TSMP samples and then iteratively modifies them until the predicted
+    Tg and Er values fall within the specified tolerance range of the target values.
+
+    Parameters:
+    - target_Tg (float): Target glass transition temperature (Tg) in °C
+    - target_Er (float): Target recovery stress (Er) in MPa
+    - tolerance_Tg (float): Tolerance for Tg prediction (±°C)
+    - tolerance_Er (float): Tolerance for Er prediction (±MPa)
+    - monomer1 (str): First monomer SMILES
+    - monomer2 (str): Second monomer SMILES
+  
+
+    Returns:
+    - str: Optimization results showing the final optimized samples and their properties
+    """
+   
+    
+    target_Tg = input.target_Tg
+    target_Er = input.target_Er
+    tolerance_Tg = input.tolerance_Tg
+    tolerance_Er = input.tolerance_Er
+    monomer1 = input.monomer1
+    monomer2 = input.monomer2
+    print("------------Parameters--------------------")
+    print(target_Tg, target_Er, tolerance_Tg, tolerance_Er, monomer1, monomer2)
+    return optimize_TSMP(target_Tg, target_Er, tolerance_Tg, tolerance_Er, monomer1, monomer2,5, "physical")
+
+
+    # max_iterations = input.max_iterations
+    # property_type = input.property_type
+
 
 
 
 def main():
-    # llm = ChatOpenAI(model="ft:gpt-4o-mini-2024-07-18:personal::BKodpSOI", api_key=api_key, 
-    #                  temperature=0, max_tokens=1000)
-    llm = ChatOpenAI(model="gpt-4o-mini-2024-07-18", api_key=api_key, 
+    try:
+        print("Initializing LLM...")
+        llm = ChatOpenAI(model=MODEL_ID, api_key=api_key, 
                      temperature=0, max_tokens=1000)
-    agent = create_react_agent(llm,
-                               tools=[remove_bond_by_smarts_tool, 
-                               add_group_by_smarts_tool, 
-                               get_all_properties_tool, 
-                               generate_TSMP_samples_tool, 
-                               generate_polymer_with_given_SMILES_tool])
+        
+        print("Creating agent...")
+        agent = create_react_agent(llm,
+                                   tools=[remove_bond_by_smarts_tool, 
+                                   add_group_by_smarts_tool, 
+                                   get_all_properties_tool, 
+                                   generate_TSMP_samples_tool, 
+                                   generate_polymer_with_given_SMILES_tool,
+                                   optimize_TSMP_tool])
+        
+        print("Agent created successfully!")
+        
+    except Exception as e:
+        print(f"Error initializing agent: {e}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        return
 
 
-    query="Generate a TSMP with Tg = 100 °C, Er = 40 MPa with Group1 = epoxy(C1OC1) in monomer1, Group2 = imine(NC) in monomer2.   "
-    print("User query:", query)
-    response = agent.invoke({"messages": [("human", query)]})
-    print("Assistant response:", response["messages"][-1].content)
-    
-    # query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCCOOCC. remove CN group from monomer 1."
-    # print("\nExample 1: Remove single atom")
-    # print("User query:", query1)
-    # response1 = agent.invoke({"messages": [("human", query1)]})
-    # print("Assistant response:", response1["messages"][-1].content)
 
-    #query = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. show the  all  properties of the given monomers ratio_1 = 0.1 and ratio_2 = 0.9."
-    # query=response["messages"][-1].content + " show the all properties of the given monomers ratio_1 = 0.1 and ratio_2 = 0.9."
-    # print("User query:", query)
-    # response = agent.invoke({"messages": [("human", query)]})
-    # print("Assistant response:", response["messages"][-1].content)
-    # tool_names = [call["name"] for msg in response["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response["messages"][1].content)
-
-    query="Generate a polymer with the SMILES: CCNC1OC1Cc1ccccc1CCCCBr"
-    print("User query:", query)
-    response = agent.invoke({"messages": [("human", query)]})
-    print("Assistant response:", response["messages"][-1].content)
-
-    # print("----------------Physical Properties----------------")
-    # query = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. show the all properties of the given monomers."
-    
-    # response = agent.invoke({"messages": [("human", query)]})
-    # #print(response['messages'][2].content)
-    # #print("Assistant response:", response["messages"][-1].content)
-    # tool_names = [call["name"] for msg in response["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("User query:", query)
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant/Tool response:", response["messages"][2].content)
-
-    # query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCCOOCC. remove CN group from monomer 1."
-    # print("\nExample 1: Remove single atom")
-    # print("User query:", query1)
-    # response1 = agent.invoke({"messages": [("human", query1)]})
-    # print("Assistant response:", response1["messages"][-1].content)
-
-
-    # query2 = "Here are two monomers: monomer1 = O=C(OCC1CO1)C3CC2OC3CC2C(=O)OCC4CO4 and monomer2 = CCC2OC2COOCC. add [*]C(=O)O group to monomer 2."
-    # print("\nExample 2:")
-    # print("User query:", query2)
-    # response2 = agent.invoke({"messages": [("human", query2)]})
-    # tool_names = [call["name"] for msg in response2["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response2["messages"][2].content)
-
-    #print("----------------Remove Group or Bond----------------")
-
-    # # Example 1: Remove N from first molecule
-    # query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCCOOCC. remove CN group from monomer 1."
-    # print("\nExample 1: Remove single atom")
-    # print("User query:", query1)
-    # response1 = agent.invoke({"messages": [("human", query1)]})
-    # print("Assistant response:", response1["messages"][-1].content)
-
-    # #Example 2: Remove O[O] bonds from second molecule
-    # query2 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. remove O[O] bonds from monomer 2."
-    # print("\nExample 1: Remove specific bond")
-    # print("User query:", query2)
-    # response2 = agent.invoke({"messages": [("human", query2)]})
-    # tool_names = [call["name"] for msg in response2["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response2["messages"][-1].content)
-
-    # # Example 3: Remove Br from first molecule
-    # query3 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. remove Br group from monomer 1."
-    # print("\nExample 3: Remove halogen")
-    # print("User query:", query3)
-    # response3 = agent.invoke({"messages": [("human", query3)]})
-    # print("Assistant response:", response3["messages"][-1].content)
-
-    # #Example 4: Remove C1OC1 group from first molecule
-    # query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. remove O-O bonds from monomer 2."
-    # print("\nExample 1:")
-    # print("User query:", query1)
-    # response1 = agent.invoke({"messages": [("human", query1)]})
-    # tool_names = [call["name"] for msg in response1["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response1["messages"][2].content)
-
-    # query2 = "Here are two monomers: monomer1 = O=C(OCC1CO1)C3CC2OC3CC2C(=O)OCC4CO4 and monomer2 = CCC2OC2COOCC. add [*]C(=O)O group to monomer 2."
-    # print("\nExample 2:")
-    # print("User query:", query2)
-    # response2 = agent.invoke({"messages": [("human", query2)]})
-    # tool_names = [call["name"] for msg in response2["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response2["messages"][2].content)
-
-    # # Example 5: Remove c1ccccc1 (benzene ring) from first molecule
-    # query3 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. remove c1ccccc1 group from monomer 1."
-    # print("\nExample 3:")
-    # print("User query:", query3)
-    # response3 = agent.invoke({"messages": [("human", query3)]})
-    # tool_names = [call["name"] for msg in response3["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response3["messages"][2].content)
-
-    # #print("----------------Add Group----------------")
-
-    # # Example 1: Add OH group to first molecule
-    # # query1 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCCOOCC. add [*]O group to monomer 1."
-    # # print("\nExample 1: Add hydroxyl group")
-    # # print("User query:", query1)
-    # # response1 = agent.invoke({"messages": [("human", query1)]})
-    # # print("Assistant response:", response1["messages"][-1].content)
-
-    # # Example 2: Add COOH group to second molecule
+    try:
+        print("\n" + "="*50)
+        print("EXECUTING QUERIES")
+        print("="*50)
+        
+        #
+        query="First, Generate a TSMP with Tg = 100 °C, Er = 40 MPa with Group1 = epoxy(C1OC1) in monomer1, Group2 = imine(NC) in monomer2. Then, show me physical properties of the generated samples with ratio_1 = 0.5 and ratio_2 = 0.5."
+        #query = "Generate TSMP samples for Tg = 100°C, Er = 40 MPa with epoxy(C1OC1) group in monomer1 and imine(NC) groups in monomer2, and immediately after generation, predict all properties of the generated samples."
+        print("User query:", query)
+        response = agent.invoke({"messages": [("human", query)]})
+        print("Assistant response:", response["messages"][-1].content)
+        
+        query= response["messages"][-1].content + " Then, optimize the generated samples to achieve Tg = 100 °C, Er = 40 MPa with tolerance of ±5°C for Tg and ±5 MPa for Er."
+        print("\nUser query:", query)
+        response = agent.invoke({"messages": [("human", query)]})
+        print("Assistant response:", response["messages"][-1].content)
+        
+    except Exception as e:
+        print(f"Error during query execution: {e}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
     
 
-    # # Example 3: Add benzene ring to first molecule
-    # query4 = "Here are two monomers: monomer1=O=C(OCC1CO1)C3CC2OC3CC2C(=O)OCC4CO4 and monomer2=CCC2OC2COOCC. add [*]c1ccccc1 group to monomer2."
-    # print("\nExample 4:")
-    # print("User query:", query4)
-    # response4 = agent.invoke({"messages": [("human", query4)]})
-    # tool_names = [call["name"] for msg in response4["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response4["messages"][2].content)
+    # Basic optimization
+#query = "Optimize TSMP samples to achieve Tg = 100°C and Er = 40 MPa with Group1 = epoxy(C1OC1) and Group2 = imine(NC). Use tolerance of ±5°C for Tg and ±5 MPa for Er."
 
-    # # # Example 4: Add CH3 group to second molecule
-    # # query4 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. add [*]C group to monomer 2."
-    # # print("\nExample 4: Add methyl group")
-    # # print("User query:", query4)
-    # # response4 = agent.invoke({"messages": [("human", query4)]})
-    # # print("Assistant response:", response4["messages"][-1].content)
+# Advanced optimization with custom parameters
+#query = "Optimize TSMP with target Tg = 120°C, Er = 50 MPa, tolerance Tg = ±10°C, tolerance Er = ±8 MPa, max 5 iterations, using vinyl(C=C) and acrylate(C=C(C=O)) groups."
 
-    # # Example 5: Add Cl group to first molecule
-    # query5 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. add [*]Cl group to monomer 1."
-    # print("\nExample 5:")
-    # print("User query:", query5)
-    # response5 = agent.invoke({"messages": [("human", query5)]}) 
-    # tool_names = [call["name"] for msg in response5["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response5["messages"][2].content)
-
-    # # Example 6: Try to remove C=C bond (not present in monomers)
-    # query6 = "Here are two monomers: monomer1 = CCNC1OC1Cc1ccccc1CCCCBr and monomer2 = CCC2OC2COOCC. remove N=N bonds from monomer 1."
-    # print("\nExample 6:")
-    # print("User query:", query6)
-    # response6 = agent.invoke({"messages": [("human", query6)]}) 
-    # tool_names = [call["name"] for msg in response6["messages"] 
-    #           if hasattr(msg, "tool_calls") and msg.tool_calls 
-    #           for call in msg.tool_calls]
-    # print("Tools called by LLM:", tool_names)
-    # print("Assistant response:", response6["messages"][2].content)
 
 if __name__ == "__main__":
    main()
-    # smiles1 = 'CCNC1OC1Cc1ccccc1CCCCBr'
-    # smiles2 = 'CCC2OC2COOCC'
-    # ratio_1 = 0.1
-    # ratio_2 = 0.9
-    # pred_result = get_all_properties(smiles1, smiles2, ratio_1, ratio_2, 'toxicity')
-    # print(pred_result)

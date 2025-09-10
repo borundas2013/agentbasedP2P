@@ -3,6 +3,7 @@ from Predictor_Agent.TgEr.predict import predict_property
 from Predictor_Agent.Solubility.solubility_prediction import predict_solubility
 from Predictor_Agent.Toxicity.predict_toxicity import predict_toxicity_for_smiles_pair
 from Generator_Agent.property_sample_generator import generate_samples
+from Generator_Agent.structure_optimization import optimize_structure
 
 def remove_bond_by_groups(smiles1: str, smiles2: str, bond_smarts: str, target_monomer: str = "1") -> str:
     return remove_bond_by_smarts(smiles1, smiles2, bond_smarts, target_monomer)
@@ -122,3 +123,6 @@ Number of High-Risk Endpoints: {toxicity_result['summary']['high_risk_count']} o
 
 def generate_TSMP_samples(Tg:float, Er:float, Group1:str, Group2:str) -> dict:
     return generate_samples(Tg, Er, Group1, Group2)
+
+def optimize_TSMP(target_Tg, target_Er, tolerance_Tg, tolerance_Er, monomer1, monomer2,max_iterations, property_type, ) -> dict:
+    return optimize_structure(target_Tg, target_Er, tolerance_Tg, tolerance_Er, monomer1, monomer2,max_iterations, property_type)

@@ -1,6 +1,7 @@
 from openai import OpenAI
 import sys
 import os
+from dotenv import load_dotenv
 
 import json
 import datetime
@@ -8,8 +9,21 @@ import datetime
 from Generator_Agent.template import *
 import random
 
+# Load environment variables from .env file
+load_dotenv()
 
-client=OpenAI(api_key=api_key)
+api_key = os.getenv("OPENAI_API_KEY")
+MODEL_ID = os.getenv("FINETUNED_MODEL_ID")
+
+
+# Initialize client lazily to avoid import-time errors
+client = None
+
+def get_client():
+    global client
+    if client is None:
+        client = OpenAI(api_key=api_key)
+    return client
 
 
 def create_prompt_system_prompt(Tg:float, Er:float, Group1:str, Group2:str):
@@ -18,23 +32,23 @@ def create_prompt_system_prompt(Tg:float, Er:float, Group1:str, Group2:str):
         
     elif Group1 != None and Group2 != None:
            
-        if group1 == "vinyl(C=C)" and group2 == "vinyl(C=C)":
+        if Group1 == "vinyl(C=C)" and Group2 == "vinyl(C=C)":
             system_prompt = vinyl_system_prompts[0]
-        elif group1 == "epoxy(C1OC1)" and group2 == "imine(NC)":
+        elif Group1 == "epoxy(C1OC1)" and Group2 == "imine(NC)":
             system_prompt = epoxy_imine_system_prompts[0]
-        elif group1 == "imine(NC)" and group2 == "epoxy(C1OC1)":
+        elif Group1 == "imine(NC)" and Group2 == "epoxy(C1OC1)":
             system_prompt = epoxy_imine_system_prompts[0]
-        elif group1 == "vinyl(C=C)" and group2 == "thiol(CCS)":
+        elif Group1 == "vinyl(C=C)" and Group2 == "thiol(CCS)":
             system_prompt = thiol_ene_system_prompts[0]
-        elif group1 == "thiol(CCS)" and group2 == "vinyl(C=C)":
+        elif Group1 == "thiol(CCS)" and Group2 == "vinyl(C=C)":
             system_prompt = thiol_ene_system_prompts[0]
-        elif group1 == "vinyl(C=C)" and group2 == "hydroxyl(=O)":
+        elif Group1 == "vinyl(C=C)" and Group2 == "hydroxyl(=O)":
             system_prompt = hydroxyl_system_prompts[0]
-        elif group1 == "hydroxyl(=O)" and group2 == "vinyl(C=C)":
+        elif Group1 == "hydroxyl(=O)" and Group2 == "vinyl(C=C)":
             system_prompt = hydroxyl_system_prompts[0]
-        elif group1 == "acrylate(C=C(C=O))" and group2 == "vinyl(C=C)":
+        elif Group1 == "acrylate(C=C(C=O))" and Group2 == "vinyl(C=C)":
             system_prompt = acrylate_vinyl_system_prompts[0]
-        elif group1 == "vinyl(C=C)" and group2 == "acrylate(C=C(C=O))":
+        elif Group1 == "vinyl(C=C)" and Group2 == "acrylate(C=C(C=O))":
             system_prompt = acrylate_vinyl_system_prompts[0]
         else:
             system_prompt = mixed_functionality_system_prompts[0]
@@ -60,7 +74,10 @@ def generate_samples(Tg:float, Er:float, Group1:str, Group2:str):
     messages.append({"role":"user","content":user_prompt})
     temperatures =[0.3,0.5,0.7,0.9,1.0]
     temperature = random.choice(temperatures)
-    completion = client.chat.completions.create(
+    
+    # Use lazy client initialization
+    client_instance = get_client()
+    completion = client_instance.chat.completions.create(
         model=MODEL_ID,
         messages=messages,
         temperature=temperature,
